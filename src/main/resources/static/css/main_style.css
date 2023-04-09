@@ -55,10 +55,26 @@ td#subject {
     border-bottom: solid;
 }
 
+table,td,th#signup_form{
+    border: none;
+}
+
+#signup_form {
+    text-align: center;
+    margin: 100px 10px 100px 10px;
+    display: flex;
+    justify-content: center;
+}
+
+#signup_form label {
+    text-align: right;
+}
+
 #login_form {
     text-align: center;
     margin: 100px 10px 100px 10px;
 }
+
 
 #login_fail {
     color: fuchsia;
