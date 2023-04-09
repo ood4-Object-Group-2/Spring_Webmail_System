@@ -26,6 +26,7 @@
                 <input type="submit" value="로그인" name="B1">&nbsp;&nbsp;&nbsp;
                 <input type="reset" value="다시 입력" name="B2">
             </form>
+            <a href="sign_up"> 회원 가입 하기</a>
         </div>
 
 
