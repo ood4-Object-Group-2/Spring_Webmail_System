@@ -84,6 +84,17 @@ table,td,th#signup_form{
     /* border: red ridge medium; */
 }
 
+table,td,th #removeUser_form{
+    border: none;
+}
+
+#removeUser_form{
+    text-align: center;
+    margin: 100px 10px 100px 10px;
+    display: flex;
+    justify-content: center;
+}
+
 #sidebar {
     margin: 20px 10px 10px 10px;
     padding: 10px;
