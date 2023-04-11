@@ -205,6 +205,44 @@ public class UserAdminAgent {
             return status;
         }
     }  // deleteUsers()
+    
+      public boolean deleteUsers(String loginid, List<String> userList) {   // 회원 탈퇴를 위한 메서드
+        byte[] messageBuffer = new byte[1024];
+        String command;
+        String recvMessage;
+        boolean status = false;
+
+        if (!isConnected) {
+            return status;
+        }
+
+        try {
+            for (String userId : userList) {
+                if (loginid.equals(userId)) {
+                    // 1: "deluser" 명령 송신
+                    command = "deluser " + userId + EOL;
+                    os.write(command.getBytes());
+                    log.debug(command);
+
+                    // 2: 응답 메시지 수신
+                    java.util.Arrays.fill(messageBuffer, (byte) 0);
+                    is.read(messageBuffer);
+
+                    // 3: 응답 메시지 분석
+                    recvMessage = new String(messageBuffer);
+                    log.debug("recvMessage = {}", recvMessage);
+                    if (recvMessage.contains("deleted")) {
+                        status = true;
+                    }
+                }
+            }
+            quit();
+        } catch (Exception ex) {
+            log.error("deleteUsers(): 예외 = {}", ex.getMessage());
+        } finally {
+            return status;
+        }
+    }
 
     public boolean verify(String userid) {
         boolean status = false;

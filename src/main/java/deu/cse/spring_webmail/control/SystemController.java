@@ -214,16 +214,23 @@ public class SystemController {
     }
 
     @PostMapping("/remove_user.do")
-    public String removeUserDo(Model model, @RequestParam String pw, RedirectAttributes attrs) {
+    public String removeUserDo(@RequestParam String pw, RedirectAttributes attrs) {
         log.debug("remove_user.do: password={}, port = {}", pw, JAMES_CONTROL_PORT);
 
         String url = "redirect:/";
 
+        String id = (String) session.getAttribute("userid");
         String password = (String) session.getAttribute("password");
         try {
+            String cwd = ctx.getRealPath(".");
+            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
+                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
+            
+            List<String> userList = getUserList();
+            
             if (pw.equals(password)) {
-                // 삭제 구현
-                attrs.addFlashAttribute("msg", String.format("비밀번호가 일치합니다."));
+                agent.deleteUsers(id, userList);
+                attrs.addFlashAttribute("msg", String.format("회원탈퇴가 완료되었습니다."));
             } else {
                 attrs.addFlashAttribute("msg", String.format(pw + "비밀번호가 일치하지 않습니다."));
                 url += "remove_user";
