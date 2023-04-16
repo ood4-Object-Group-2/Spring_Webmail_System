@@ -111,6 +111,46 @@ public class UserAdminAgent {
             return status;
         }
     }  // addUser()
+    
+    public boolean Update(String userId, String password) {
+        boolean status = false;
+        byte[] messageBuffer = new byte[1024];
+
+        log.debug("UpdateUser() called");
+        if (!isConnected) {
+            return status;
+        }
+
+        try {
+            // 1: "updateuser" command
+            String updateUserCommand = "setpassword " + userId + " " + password + EOL;
+            os.write(updateUserCommand.getBytes());
+
+            // 2: response for "adduser" command
+            java.util.Arrays.fill(messageBuffer, (byte) 0);
+            //if (is.available() > 0) {
+            is.read(messageBuffer);
+            String recvMessage = new String(messageBuffer);
+            log.debug(recvMessage);
+            //}
+            // 3: 기존 메일사용자 여부 확인
+            if (recvMessage.contains("added")) {
+                status = true;
+            } else {
+                status = false;
+            }
+            // 4: 연결 종료
+            quit();
+            System.out.flush();  // for test
+            socket.close();
+        } catch (Exception ex) {
+            log.error("updateUser 예외: {}", ex.getMessage());
+            status = false;
+        } finally {
+            // 5: 상태 반환
+            return status;
+        }
+    }
 
     public List<String> getUserList() {
         List<String> userList = new LinkedList<String>();
