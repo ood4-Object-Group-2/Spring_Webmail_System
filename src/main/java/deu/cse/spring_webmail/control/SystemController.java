@@ -179,6 +179,43 @@ public class SystemController {
 
         return "redirect:/admin_menu";
     }
+    
+    @GetMapping("/update_user")
+    public String UpdateUser(){
+        return "update_user/update_user";
+    }
+    
+    @PostMapping("/update_user.do")
+    public String UpdateUserDo(@RequestParam String nowpasswd, 
+            @RequestParam String newpasswd, @RequestParam String newpasswd2, RedirectAttributes attrs) {
+        log.debug("update_user.do: nowpw = {}, newpw = {}, chkpw = {}, port = {}",
+                nowpasswd, newpasswd, newpasswd2, JAMES_CONTROL_PORT);
+        String url = "redirect:/";
+        String id = (String)session.getAttribute("userid");
+        String pw = (String)session.getAttribute("password");
+        try {
+            String cwd = ctx.getRealPath(".");
+            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
+                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
+            if(pw.equals(nowpasswd)&&newpasswd.equals(newpasswd2)){//현재 비밀번호 확인
+                if(newpasswd.equals("")||newpasswd2.equals("")){
+                    attrs.addFlashAttribute("msg", String.format("공백란을 모두 채워주시기 바랍니다."));
+                    url += "update_user";
+                }
+                else{
+                    agent.Update(id, newpasswd);
+                    attrs.addFlashAttribute("msg", String.format("회원수정에 성공하였습니다."));
+                }
+            }
+            else{
+                attrs.addFlashAttribute("msg", String.format("같은 비밀번호로 입력했거나, 현재 비밀번호 또는 새 비밀번호 확인이 틀렸습니다."));
+                url += "update_user";
+            }
+        } catch (Exception ex) {
+            log.error("update_user.do: 시스템 접속에 실패했습니다. 예외 = {}", ex.getMessage());
+        }
+        return url;
+    }
 
     @PostMapping("/signup.do")
     public String signUpDo(@RequestParam String id, @RequestParam String pw, @RequestParam String check_pw, RedirectAttributes attrs) {
