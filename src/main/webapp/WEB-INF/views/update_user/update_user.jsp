@@ -6,6 +6,8 @@
 
 <%@page import="deu.cse.spring_webmail.control.CommandType"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -13,6 +15,11 @@
         <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
         <title>회원정보 수정</title>
         <link type="text/css" rel="stylesheet" href="css/main_style.css" />
+        <script>
+            <c:if test="${!empty msg}">
+            alert("${msg}");
+            </c:if>
+        </script>
     </head>
     <body>
         <%@include file="../header.jspf"%>
