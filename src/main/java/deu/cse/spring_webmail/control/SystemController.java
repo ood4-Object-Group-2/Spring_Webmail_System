@@ -221,35 +221,66 @@ public class SystemController {
     public String signUpDo(@RequestParam String id, @RequestParam String pw, @RequestParam String check_pw, RedirectAttributes attrs) {
         log.debug("signup.do: id = {}, password = {}, check-password = {}, port = {}",
                 id, pw, check_pw, JAMES_CONTROL_PORT);
-        
-        
+
         String url = "redirect:/";
         try {
-           
+
             String cwd = ctx.getRealPath(".");
             UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
                     ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
-            
+
             // if (addUser successful)  사용자 등록 성공 팦업창
             // else 사용자 등록 실패 팝업창
             if (pw.equals(check_pw)) {
                 if (agent.addUser(id, pw)) {
-                     attrs.addFlashAttribute("msg", String.format("회원가입에 성공하였습니다."));
+                    attrs.addFlashAttribute("msg", String.format("회원가입에 성공하였습니다."));
                 } else {
                     attrs.addFlashAttribute("msg", String.format("이미 사용자가 존재합니다."));
                     url += "sign_up";
                 }
-            }else{
+            } else {
                 attrs.addFlashAttribute("msg", String.format("비밀번호가 일치하지 않습니다."));
-                    url += "sign_up";
+                url += "sign_up";
             }
-            
 
         } catch (Exception ex) {
             log.error("sign_up.do: 시스템 접속에 실패했습니다. 예외 = {}", ex.getMessage());
         }
 
         return url;
+    }
+
+    @PostMapping("/remove_user.do")
+    public String removeUserDo(@RequestParam String pw, RedirectAttributes attrs) {
+        log.debug("remove_user.do: password={}, port = {}", pw, JAMES_CONTROL_PORT);
+
+        String url = "redirect:/";
+
+        String id = (String) session.getAttribute("userid");
+        String password = (String) session.getAttribute("password");
+        try {
+            String cwd = ctx.getRealPath(".");
+            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
+                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
+            
+            List<String> userList = getUserList();
+            
+            if (pw.equals(password)) {
+                agent.deleteUsers(id, userList);
+                attrs.addFlashAttribute("msg", String.format("회원탈퇴가 완료되었습니다."));
+            } else {
+                attrs.addFlashAttribute("msg", String.format(pw + "비밀번호가 일치하지 않습니다."));
+                url += "remove_user";
+            }
+        } catch (Exception ex) {
+            log.error("remove_user.do: 시스템 접속에 실패했습니다. 예외 ={}", ex.getMessage());
+        }
+        return url;
+    }
+
+    @GetMapping("/remove_user")
+    public String removeUser() {
+        return "/remove_user";
     }
 
     @GetMapping("/delete_user")
