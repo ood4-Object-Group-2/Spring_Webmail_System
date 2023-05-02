@@ -23,6 +23,7 @@
         --%>
         <p><a href="add_user">사용자 추가</a> </p>
         <p><a href="delete_user"> 사용자 제거</a> </p>
+        <p><a href="update_admin"> 관리자 수정 </a> </P>
         <p><a href="login.do?menu=<%= CommandType.LOGOUT %>">로그아웃</a></p>
     </body>
 </html>
