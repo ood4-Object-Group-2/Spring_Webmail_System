@@ -22,9 +22,10 @@ public class SpringWebmailApplication {
 
     /**
      * https://stackoverflow.com/questions/21533679/can-a-propertiesfactorybean-read-a-value-from-application-yml
-     * @return 
+     *
+     * @return
      */
-    @Bean(name="systemProperties")
+    @Bean(name = "systemProperties")
     public PropertiesFactoryBean systemProperties() {
         log.debug("systemProperties() called...");
         PropertiesFactoryBean bean = new PropertiesFactoryBean();
@@ -35,7 +36,14 @@ public class SpringWebmailApplication {
         } catch (IOException ex) {
             log.error("configProperties: 예외 = {}", ex.getMessage());
         }
-        
+
+        return bean;
+    }
+    
+    @Bean
+    public PropertiesFactoryBean condigProperties() {
+        PropertiesFactoryBean bean = new PropertiesFactoryBean();
+        bean.setLocation(new ClassPathResource("/config.properties"));
         return bean;
     }
 
