@@ -4,18 +4,19 @@
  */
 package deu.cse.spring_webmail.control;
 
+import deu.cse.spring_webmail.model.MessageFormatter;
+import deu.cse.spring_webmail.model.Paging;
 import deu.cse.spring_webmail.model.Pop3Agent;
 import deu.cse.spring_webmail.model.UserAdminAgent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +96,7 @@ public class SystemController {
                         session.setAttribute("userid", userid);
                         session.setAttribute("password", password);
                         // response.sendRedirect("main_menu.jsp");
-                        url = "redirect:/main_menu";  // URL이 http://localhost:8080/webmail/main_menu 이와 같이 됨.
+                        url = "redirect:/main_menu?page=1";  // URL이 http://localhost:8080/webmail/main_menu 이와 같이 됨.
                         // url = "/main_menu";  // URL이 http://localhost:8080/webmail/login.do?menu=91 이와 같이 되어 안 좋음
                     }
                 } else {
@@ -130,14 +131,20 @@ public class SystemController {
     }
 
     @GetMapping("/main_menu")
-    public String mainmenu(Model model) {
+    public String mainmenu(Model model, @RequestParam("page") int page) {
         Pop3Agent pop3 = new Pop3Agent();
         pop3.setHost((String) session.getAttribute("host"));
         pop3.setUserid((String) session.getAttribute("userid"));
         pop3.setPassword((String) session.getAttribute("password"));
-
-        String messageList = pop3.getMessageList();
-        model.addAttribute("messageList", messageList);
+        ArrayList<MessageFormatter> list = pop3.getMessageList();
+        Paging paging = new Paging(page, list.size());
+        ArrayList<MessageFormatter> slice_list = new ArrayList<>();
+        //출력할 메시지 목록만 슬라이싱
+        for(int i = paging.getStartlist(); i<paging.getEndlist()+1; i++){
+            slice_list.add(list.get(i-1));
+        }
+        model.addAttribute("messageList", slice_list);
+        model.addAttribute("paging",paging);
         return "main_menu";
     }
 
@@ -178,43 +185,6 @@ public class SystemController {
         }
 
         return "redirect:/admin_menu";
-    }
-    
-    @GetMapping("/update_admin")
-    public String UpdateAdmin(){
-        return "admin/update_admin";
-    }
-    
-    @PostMapping("/update_admin.do")
-    public String UpdateAdminDo(@RequestParam String nowpasswd, 
-            @RequestParam String newpasswd, @RequestParam String chkpasswd, RedirectAttributes attrs) {
-        log.debug("update_admin.do: nowpw = {}, newpw = {}, chkpw = {}, port = {}",
-                nowpasswd, newpasswd, chkpasswd, JAMES_CONTROL_PORT);
-        String url = "redirect:/";
-        String id = (String)session.getAttribute("userid");
-        String pw = (String)session.getAttribute("passwd");//현재 null 나옴.
-        try {
-            String cwd = ctx.getRealPath(".");
-            UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
-                    ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
-            if(pw.equals(nowpasswd)&&newpasswd.equals(chkpasswd)){//현재 비밀번호 확인
-                if(newpasswd.equals("")||chkpasswd.equals("")){
-                    attrs.addFlashAttribute("msg", String.format("공백란을 모두 채워주시기 바랍니다."));
-                    url += "update_admin";
-                }
-                else{
-                    agent.Update(id, newpasswd);
-                    attrs.addFlashAttribute("msg", String.format("회원수정에 성공하였습니다."));
-                }
-            }
-            else{
-                attrs.addFlashAttribute("msg", String.format("같은 비밀번호로 입력했거나, 현재 비밀번호 또는 새 비밀번호 확인이 틀렸습니다."));
-                url += "update_admin";
-            }
-        } catch (Exception ex) {
-            log.error("update_admin.do: 시스템 접속에 실패했습니다. 예외 = {}", ex.getMessage());
-        }
-        return url;
     }
     
     @GetMapping("/update_user")

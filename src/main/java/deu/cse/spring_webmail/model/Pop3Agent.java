@@ -10,6 +10,7 @@ import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import java.util.ArrayList;
 import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 import lombok.Getter;
@@ -89,13 +90,13 @@ public class Pop3Agent {
     /*
      * 페이지 단위로 메일 목록을 보여주어야 함.
      */
-    public String getMessageList() {
-        String result = "";
+    public ArrayList<MessageFormatter> getMessageList() {
+        //String result = "";
         Message[] messages = null;
-
+        ArrayList<MessageFormatter> list = new ArrayList<>();
         if (!connectToStore()) {  // 3.1
             log.error("POP3 connection failed!");
-            return "POP3 연결이 되지 않아 메일 목록을 볼 수 없습니다.";
+            //return "POP3 연결이 되지 않아 메일 목록을 볼 수 없습니다.";
         }
 
         try {
@@ -109,17 +110,17 @@ public class Pop3Agent {
             // From, To, Cc, Bcc, ReplyTo, Subject & Date
             fp.add(FetchProfile.Item.ENVELOPE);
             folder.fetch(messages, fp);
-
+            
             MessageFormatter formatter = new MessageFormatter(userid);  //3.5
-            result = formatter.getMessageTable(messages);   // 3.6
-
+            list = formatter.getMessageTable(messages);
             folder.close(true);  // 3.7
             store.close();       // 3.8
         } catch (Exception ex) {
             log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
-            result = "Pop3Agent.getMessageList() : exception = " + ex.getMessage();
+            //result = "Pop3Agent.getMessageList() : exception = " + ex.getMessage();
+            
         } finally {
-            return result;
+            return list;
         }
     }
 
@@ -136,7 +137,6 @@ public class Pop3Agent {
             folder.open(Folder.READ_ONLY);
 
             Message message = folder.getMessage(n);
-
             MessageFormatter formatter = new MessageFormatter(userid);
             formatter.setRequest(request);  // 210308 LJM - added
             result = formatter.getMessage(message);
