@@ -20,17 +20,27 @@ body {
 table {
     margin: 0px 15px 0 15px;
     border: thin solid black;
+    border-collapse: collapse;
+}
+
+table#mail{
+    width: 95%;
 }
 
 td, th {
     border: 1px solid black;
     text-align: center;
-    padding: 5px;
+    
 }
 
 th {
     background-color:  gray;
     color: white;
+}
+
+tr#under_line{
+    
+    border: thin solid;
 }
 
 
@@ -40,10 +50,11 @@ td#sender {
 
 td#date {
     width: 22%;
+   
 }
 
-
 td#subject {
+    padding-left: 2%;
     text-align: left;
     width: 50%;
 }
@@ -55,7 +66,11 @@ td#subject {
     border-bottom: solid;
 }
 
-table,td,th#signup_form{
+#page_list {
+    text-align: center;
+}
+
+#signup_form{
     border: none;
 }
 
