@@ -74,7 +74,7 @@ public class WriteController {
             attrs.addFlashAttribute("msg", "메일 전송이 실패했습니다.");
         }
         
-        return "redirect:/main_menu";
+        return "redirect:/main_menu?page=1";
     }
     
     /**
