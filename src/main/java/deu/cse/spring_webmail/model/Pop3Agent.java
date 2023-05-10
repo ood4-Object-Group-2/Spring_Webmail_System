@@ -139,10 +139,8 @@ public class Pop3Agent {
             
             int co = 0;
             while (rs.next()) {
-                log.debug("rs = {}",rs.getBlob("message_body").getBinaryStream());
                 //Message 객체에 담을 수 있도록 message_body를 사용하여 MimeMessage 객체 사용
                 mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), rs.getBlob("message_body").getBinaryStream());
-                System.out.println(mimeMessage);
                 //messages[co] = mimeMessage;
                 messages.add(mimeMessage);
                 co++;
