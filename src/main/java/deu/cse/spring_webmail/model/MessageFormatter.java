@@ -6,6 +6,7 @@ package deu.cse.spring_webmail.model;
 
 import jakarta.mail.Message;
 import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.NonNull;
@@ -37,11 +38,11 @@ public class MessageFormatter {
         this.date = date;
     }
     
-    public ArrayList<MessageFormatter> getMessageTable(Message[] messages) {
+    public ArrayList<MessageFormatter> getMessageTable(ArrayList<Message> messages) {
         ArrayList<MessageFormatter> list = new ArrayList<>();
         // 메시지 제목 보여주기
-        for (int i = messages.length - 1; i >= 0; i--) {
-            MessageParser parser = new MessageParser(messages[i], userid);
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            MessageParser parser = new MessageParser(messages.get(i), userid);
             parser.parse(false);  // envelope 정보만 필요
             // 메시지 헤더 포맷
            //추출한 목록을 객체 리스트화 시키기

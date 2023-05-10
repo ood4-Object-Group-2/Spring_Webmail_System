@@ -4,19 +4,26 @@
  */
 package deu.cse.spring_webmail.model;
 
-import jakarta.mail.FetchProfile;
 import jakarta.mail.Flags;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import jakarta.mail.internet.MimeMessage;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.PropertySource;
 
 /**
  *
@@ -24,25 +31,46 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @NoArgsConstructor        // 기본 생성자 생성
+@PropertySource(value = "classpath:/application.properties")
 public class Pop3Agent {
-    @Getter @Setter private String host;
-    @Getter @Setter private String userid;
-    @Getter @Setter private String password;
-    @Getter @Setter private Store store;
-    @Getter @Setter private String excveptionType;
-    @Getter @Setter private HttpServletRequest request;
-    
+
+    @Getter
+    @Setter
+    private String host;
+    @Getter
+    @Setter
+    private String userid;
+    @Getter
+    @Setter
+    private String password;
+    @Getter
+    @Setter
+    private Store store;
+    @Getter
+    @Setter
+    private String excveptionType;
+    @Getter
+    @Setter
+    private HttpServletRequest request;
+
     // 220612 LJM - added to implement REPLY
-    @Getter private String sender;
-    @Getter private String subject;
-    @Getter private String body;
-    
+    @Getter
+    private String sender;
+    @Getter
+    private String subject;
+    @Getter
+    private String body;
+
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+
     public Pop3Agent(String host, String userid, String password) {
         this.host = host;
         this.userid = userid;
         this.password = password;
     }
-    
+
     public boolean validate() {
         boolean status = false;
 
@@ -90,35 +118,38 @@ public class Pop3Agent {
     /*
      * 페이지 단위로 메일 목록을 보여주어야 함.
      */
-    public ArrayList<MessageFormatter> getMessageList() {
-        //String result = "";
-        Message[] messages = null;
+    public ArrayList<MessageFormatter> getMessageList(HikariConfiguration dbConfig) {
+        //컨트롤러에서 dbConfig 정보를 받아와서 사용
+        
         ArrayList<MessageFormatter> list = new ArrayList<>();
-        if (!connectToStore()) {  // 3.1
-            log.error("POP3 connection failed!");
-            //return "POP3 연결이 되지 않아 메일 목록을 볼 수 없습니다.";
-        }
-
+        MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+        ArrayList<Message> messages = new ArrayList<>();
+       
         try {
-            // 메일 폴더 열기
-            Folder folder = store.getFolder("INBOX");  // 3.2
-            folder.open(Folder.READ_ONLY);  // 3.3
-
-            // 현재 수신한 메시지 모두 가져오기
-            messages = folder.getMessages();      // 3.4
-            FetchProfile fp = new FetchProfile();
-            // From, To, Cc, Bcc, ReplyTo, Subject & Date
-            fp.add(FetchProfile.Item.ENVELOPE);
-            folder.fetch(messages, fp);
+            //DB에서 메시지 값을 가져와서 읽기
+            //inbox에서 메일 정복가 있는 message_body를 불러와서 처리
+            String sql = "SELECT message_body from inbox where repository_name=?";
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+            MimeMessage mimeMessage = null;
             
-            MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+            int co = 0;
+            while (rs.next()) {
+                log.debug("rs = {}",rs.getBlob("message_body").getBinaryStream());
+                //Message 객체에 담을 수 있도록 message_body를 사용하여 MimeMessage 객체 사용
+                mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), rs.getBlob("message_body").getBinaryStream());
+                System.out.println(mimeMessage);
+                //messages[co] = mimeMessage;
+                messages.add(mimeMessage);
+                co++;
+            }
             list = formatter.getMessageTable(messages);
-            folder.close(true);  // 3.7
-            store.close();       // 3.8
-        } catch (Exception ex) {
+        } catch (MessagingException | SQLException ex) {
             log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
-            //result = "Pop3Agent.getMessageList() : exception = " + ex.getMessage();
-            
         } finally {
             return list;
         }
@@ -178,5 +209,5 @@ public class Pop3Agent {
             return status;
         }
     }
-    
+
 }
