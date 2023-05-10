@@ -143,9 +143,7 @@ public class SystemController {
         ArrayList<MessageFormatter> list = pop3.getMessageList(dbConfig);
         Paging paging = new Paging(page, list.size());
         ArrayList<MessageFormatter> slice_list = new ArrayList<>();
-        System.out.println(paging.getStartlist());
-        System.out.println(paging.getEndlist());
-        
+       
         //출력할 메시지 목록만 슬라이싱
         for(int i = paging.getStartlist(); i<paging.getEndlist()+1; i++){
             slice_list.add(list.get(i-1));
