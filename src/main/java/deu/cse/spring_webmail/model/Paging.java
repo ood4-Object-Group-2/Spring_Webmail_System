@@ -17,9 +17,8 @@ public class Paging {
     //전체 항목 리스트 중 목록에 보여질 리스트 슬라이싱을 위한 변수
     @Getter private int startlist, endlist;
     //페이지에서 가장 먼저 보이는 페이지
-    private final int startpage = 1;
     //페이지 단에서 보여줄 개수
-    private final int showpage = 5;
+    private final int showpage = 3;
     //요소가 보여질 개수
     private final int showlist = 10;
     
@@ -31,11 +30,15 @@ public class Paging {
         if(total%showlist>0){ //나머지가 있으면 페이지를 하나 더 추가해야하므로 +1
             this.totalpage += 1;
         }
-        if(nowpage <= showpage){//총 페이지 갯수가 한번에 보여질 페이지보다 적을 때
-            this.first=startpage;
-            this.last=totalpage;
+        if(nowpage == 1){//총 페이지 갯수가 한번에 보여질 페이지보다 적을 때
+            this.first=1;
+            if(totalpage<=showpage){
+                this.last=totalpage;
+            }else{
+                this.last=showpage;
+            }
         }else if(nowpage == this.totalpage){//마지막 페이지일때
-            this.first=this.totalpage-showpage;
+            this.first=this.totalpage-showpage+1;
             this.last=totalpage;
         }else{
             this.first = nowpage - showpage/2;

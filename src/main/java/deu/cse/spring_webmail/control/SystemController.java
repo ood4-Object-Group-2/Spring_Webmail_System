@@ -4,6 +4,7 @@
  */
 package deu.cse.spring_webmail.control;
 
+import deu.cse.spring_webmail.model.HikariConfiguration;
 import deu.cse.spring_webmail.model.MessageFormatter;
 import deu.cse.spring_webmail.model.Paging;
 import deu.cse.spring_webmail.model.Pop3Agent;
@@ -60,6 +61,9 @@ public class SystemController {
     private Integer JAMES_CONTROL_PORT;
     @Value("${james.host}")
     private String JAMES_HOST;
+    
+    @Autowired
+    private HikariConfiguration dbConfig;
 
     @GetMapping("/")
     public String index() {
@@ -133,12 +137,15 @@ public class SystemController {
     @GetMapping("/main_menu")
     public String mainmenu(Model model, @RequestParam("page") int page) {
         Pop3Agent pop3 = new Pop3Agent();
-        pop3.setHost((String) session.getAttribute("host"));
+        //pop3.setHost((String) session.getAttribute("host"));
         pop3.setUserid((String) session.getAttribute("userid"));
-        pop3.setPassword((String) session.getAttribute("password"));
-        ArrayList<MessageFormatter> list = pop3.getMessageList();
+        //pop3.setPassword((String) session.getAttribute("password"));
+        ArrayList<MessageFormatter> list = pop3.getMessageList(dbConfig);
         Paging paging = new Paging(page, list.size());
         ArrayList<MessageFormatter> slice_list = new ArrayList<>();
+        System.out.println(paging.getStartlist());
+        System.out.println(paging.getEndlist());
+        
         //출력할 메시지 목록만 슬라이싱
         for(int i = paging.getStartlist(); i<paging.getEndlist()+1; i++){
             slice_list.add(list.get(i-1));
