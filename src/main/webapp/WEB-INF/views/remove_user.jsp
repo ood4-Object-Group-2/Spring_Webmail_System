@@ -18,16 +18,25 @@
         <title>회원 탈퇴 </title>
         <link type="text/css" rel="stylesheet" href="css/main_style.css" />
         <script>
-            <c:if test="${!empty msg}">
-            alert("${msg}");
-            </c:if>
+            function confirmDelete() {
+                if (confirm("회원탈퇴 하시겠습니까?")) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            function showMessage(msg) {
+                alert(msg);
+            }
+
         </script>
     </head>
     <body>
         <%@include file="header.jspf"%>
 
         <div id="removeUser_form">
-            <form method="POST" action="remove_user.do" name="removeUser">
+            <form method="POST" action="remove_user.do" name="removeUser" onsubmit="return confirmDelete()">
                 <table>
                     <tr>
                         <td style="text-align: right;">PW :</td>
@@ -36,9 +45,15 @@
                 </table>
                 <br><!-- comment -->
                 <input type="submit" value="회원 탈퇴">
-                <!<!-- <button type="button" value='removeUser();'> 탈퇴하기 </button> -->
             </form>
         </div>
+        
+        <c:if test="${!empty msg}">
+            <script>
+                showMessage("${msg}");
+            </script>
+        </c:if>
+            
         <%@include file="footer.jspf"%>
     </body>
 </html>
