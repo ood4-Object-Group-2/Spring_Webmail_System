@@ -384,4 +384,9 @@ public class SystemController {
     public String signUp() {
         return "/sign_up";
     }
+    
+    @GetMapping("/trashcan")
+    public String TrashCan(){
+        return "/trashcan";
+    }
 }
