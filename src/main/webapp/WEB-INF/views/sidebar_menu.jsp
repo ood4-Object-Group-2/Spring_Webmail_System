@@ -20,6 +20,8 @@
 
         <p> <a href="main_menu"> 메일 읽기 </a> </p>
         <p> <a href="write_mail"> 메일 쓰기 </a> </p>
+        <p> <a href="trashcan"> 휴지통 </a> </p>
+        <p> <a href="update_user"> 사용자 수정 </a> </P>
         <p><a href="remove_user"> 회원 탈퇴</a> </p>
         <p><a href="login.do?menu=<%= CommandType.LOGOUT%>">로그아웃</a></p>
     </body>
