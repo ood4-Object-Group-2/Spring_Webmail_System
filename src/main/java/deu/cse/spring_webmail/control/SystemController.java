@@ -75,9 +75,10 @@ public class SystemController {
     }
 
     @RequestMapping(value = "/login.do", method = {RequestMethod.GET, RequestMethod.POST})
-    public String loginDo(@RequestParam Integer menu) {
+    public String loginDo(@RequestParam Integer menu, RedirectAttributes attrs) {
         String url = "";
         log.debug("로그인 처리: menu = {}", menu);
+        String str = "";
         switch (menu) {
             case CommandType.LOGIN:
                 String host = (String) request.getSession().getAttribute("host");
@@ -93,20 +94,25 @@ public class SystemController {
                     if (isAdmin(userid)) {
                         // HttpSession 객체에 userid를 등록해 둔다.
                         session.setAttribute("userid", userid);
+                        session.setAttribute("passwd", password);
+                        str = "관리자 로그인";
                         // response.sendRedirect("admin_menu.jsp");
                         url = "redirect:/admin_menu";
                     } else {
                         // HttpSession 객체에 userid와 password를 등록해 둔다.
                         session.setAttribute("userid", userid);
                         session.setAttribute("password", password);
+                        str = "일반 회원 로그인";
                         // response.sendRedirect("main_menu.jsp");
                         url = "redirect:/main_menu?page=1";  // URL이 http://localhost:8080/webmail/main_menu 이와 같이 됨.
                         // url = "/main_menu";  // URL이 http://localhost:8080/webmail/login.do?menu=91 이와 같이 되어 안 좋음
                     }
                 } else {
+                    str = "ID 또는 비밀번호가 다릅니다.";
+                    url = "redirect:/";
                     // RequestDispatcher view = request.getRequestDispatcher("login_fail.jsp");
                     // view.forward(request, response);
-                    url = "redirect:/login_fail";
+                    //url = "redirect:/login_fail";
                 }
                 break;
             case CommandType.LOGOUT:
@@ -116,6 +122,7 @@ public class SystemController {
             default:
                 break;
         }
+        attrs.addFlashAttribute("msg",String.format(str));
         return url;
     }
 
