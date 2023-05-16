@@ -120,11 +120,11 @@ public class Pop3Agent {
      */
     public ArrayList<MessageFormatter> getMessageList(HikariConfiguration dbConfig) {
         //컨트롤러에서 dbConfig 정보를 받아와서 사용
-        
+
         ArrayList<MessageFormatter> list = new ArrayList<>();
         MessageFormatter formatter = new MessageFormatter(userid);  //3.5
         ArrayList<Message> messages = new ArrayList<>();
-       
+
         try {
             //DB에서 메시지 값을 가져와서 읽기
             //inbox에서 메일 정복가 있는 message_body를 불러와서 처리
@@ -136,7 +136,7 @@ public class Pop3Agent {
             log.debug("sql = {}", pstmt);
             rs = pstmt.executeQuery();
             MimeMessage mimeMessage = null;
-            
+
             int co = 0;
             while (rs.next()) {
                 //Message 객체에 담을 수 있도록 message_body를 사용하여 MimeMessage 객체 사용
@@ -146,6 +146,38 @@ public class Pop3Agent {
                 co++;
             }
             list = formatter.getMessageTable(messages);
+        } catch (MessagingException | SQLException ex) {
+            log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
+        } finally {
+            return list;
+        }
+    }
+
+    // 보낸 메일함
+    public ArrayList<MessageFormatter> getSentMessageList(HikariConfiguration dbConfig) {
+
+        ArrayList<MessageFormatter> list = new ArrayList<>();
+        MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+        ArrayList<Message> messages = new ArrayList<>();
+
+        try {
+
+            String sql = "SELECT message_body from inbox where sender=?";  
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid + "@localhost");
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+            MimeMessage mimeMessage = null;
+
+            int co = 0;
+            while (rs.next()) {
+                mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), rs.getBlob("message_body").getBinaryStream());
+                messages.add(mimeMessage);
+                co++;
+            }
+            list = formatter.getSentMessageTable(messages);
         } catch (MessagingException | SQLException ex) {
             log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
         } finally {
