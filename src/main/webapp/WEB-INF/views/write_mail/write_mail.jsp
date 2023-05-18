@@ -35,7 +35,7 @@
                 <table>
                     <tr>
                         <td> 수신 </td>
-                        <td> <input type="text" name="to" size="80"
+                        <td> <input type="text" name="to" size="80" minlength="2" maxlength="20"
                                     value="${!empty param['sender'] ? param['sender'] : ''}"
                                     <!--    value=<%=request.getParameter("recv") == null ? "" : request.getParameter("recv")%>  -->
                         </td>
@@ -54,7 +54,7 @@
                     </tr>
                     <tr>  <%-- TextArea    --%>
                         <td colspan="2">
-                            <textarea rows="15" name="body" cols="80">${!empty param['sender'] ?
+                            <textarea rows="15" name="body" cols="80" maxlength="180">${!empty param['sender'] ?
                                                                         "
 
 

@@ -76,7 +76,10 @@ public class WriteController {
             attrs.addFlashAttribute("msg", "메일 전송이 성공했습니다.");
             url += "main_menu?page=1";
         } else {
-            if (upFile.getSize() > Long.parseLong(MAX_SIZE)) {
+            if (subj == null || subj.isEmpty()) {
+                attrs.addFlashAttribute("msg", String.format("제목을 입력하세요."));
+                url += "write_mail";
+            } else if (upFile.getSize() > Long.parseLong(MAX_SIZE)) {
                 attrs.addFlashAttribute("msg", String.format("첨부 파일 크기가 제한을 초과했습니다. 최대 크기: " + MAX_SIZE + "바이트"));
                 url += "write_mail";
             } else {
@@ -115,9 +118,13 @@ public class WriteController {
         agent.setBody(body);
         String fileName = upFile.getOriginalFilename();
 
+        if (subject == null || subject.isEmpty()) { // 제목이 입력되지 않은 경우 오류 처리
+            return false;
+        }
+
         if (fileName != null && !"".equals(fileName)) {
             long fileSize = upFile.getSize();
-            if (fileSize <= 100) {  // 첨부파일 크기 제한 (10MB로 제한)
+            if (fileSize <= 100) {  // 첨부파일 크기 제한 (70byte로 제한)
                 log.debug("sendMessage: 파일({}) 첨부 필요", fileName);
                 File f = new File(ctx.getRealPath(UPLOAD_FOLDER) + File.separator + fileName);
                 agent.setFile1(f.getAbsolutePath());
