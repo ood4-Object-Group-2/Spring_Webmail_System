@@ -122,7 +122,7 @@ public class SystemController {
             default:
                 break;
         }
-        attrs.addFlashAttribute("msg",String.format(str));
+        attrs.addFlashAttribute("msg", String.format(str));
         return url;
     }
 
@@ -391,20 +391,20 @@ public class SystemController {
     public String signUp() {
         return "/sign_up";
     }
-    
 
     @GetMapping("/trashcan")
-    public String TrashCan(){
+    public String TrashCan() {
         return "/trashcan";
+    }
 
     // 보낸 메일함
-        @GetMapping("/mysent_mail")
+    @GetMapping("/mysent_mail")
     public String sendMail(Model model) {
         Pop3Agent pop3 = new Pop3Agent();
         pop3.setUserid((String) session.getAttribute("userid"));
 
         ArrayList<MessageFormatter> list = pop3.getSentMessageList(dbConfig);
-        model.addAttribute("list",list);
+        model.addAttribute("list", list);
         return "sent_mail/mysent_mail";
 
     }

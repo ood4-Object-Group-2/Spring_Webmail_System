@@ -7,7 +7,8 @@
 
 <!DOCTYPE html>
 
-<%-- @taglib  prefix="c" uri="http://java.sun.com/jsp/jstl/core" --%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
 
 <html>
@@ -15,6 +16,11 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>메일 쓰기 화면</title>
         <link type="text/css" rel="stylesheet" href="css/main_style.css" />
+        <script>
+            function showMessage(msg) {
+                alert(msg);
+            }
+        </script>
     </head>
     <body>
         <%@include file="../header.jspf"%>
@@ -31,7 +37,7 @@
                         <td> 수신 </td>
                         <td> <input type="text" name="to" size="80"
                                     value="${!empty param['sender'] ? param['sender'] : ''}"
-            <!--    value=<%=request.getParameter("recv") == null ? "" : request.getParameter("recv")%>  -->
+                                    <!--    value=<%=request.getParameter("recv") == null ? "" : request.getParameter("recv")%>  -->
                         </td>
                     </tr>
                     <tr>
@@ -49,12 +55,12 @@
                     <tr>  <%-- TextArea    --%>
                         <td colspan="2">
                             <textarea rows="15" name="body" cols="80">${!empty param['sender'] ?
-"
+                                                                        "
 
 
 
-----
-" += sessionScope['body'] : ''}</textarea> 
+                                                                        ----
+                                                                        " += sessionScope['body'] : ''}</textarea> 
                         </td>
                     </tr>
                     <tr>
@@ -70,6 +76,13 @@
                 </table>
             </form>
         </div>
+
+        <c:if test="${!empty msg}">
+            <script>
+                showMessage("${msg}");
+            </script>
+        </c:if>
+
 
         <%@include file="../footer.jspf"%>
     </body>
