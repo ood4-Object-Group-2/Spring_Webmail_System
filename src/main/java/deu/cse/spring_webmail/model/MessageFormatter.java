@@ -51,6 +51,19 @@ public class MessageFormatter {
         return list;
         //return "MessageFormatter 테이블 결과";
     }
+    
+    // 보낸 메일함
+        public ArrayList<MessageFormatter> getSentMessageTable(ArrayList<Message> messages) {
+        ArrayList<MessageFormatter> list = new ArrayList<>();
+        
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            MessageParser parser = new MessageParser(messages.get(i), userid);
+            parser.parse(false);  
+
+            list.add(new MessageFormatter(i + 1, parser.getToAddress(), parser.getSubject(), parser.getSentDate()));
+        }
+        return list;
+    }
 
     public String getMessage(Message message) {
         StringBuilder buffer = new StringBuilder();
