@@ -50,7 +50,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <c:forEach items="${list}" var="list">
+                    <c:forEach items="${messageList}" var="list">
                         <tr style="border-bottom: thin solid black">
                             <td id="no">${list.getNo()}</td>
                             <td id="sender">${list.getSender()}</td>
@@ -61,6 +61,11 @@
                     </c:forEach>
                 </tbody>
             </table>
+            <div id="page_list">
+                <c:forEach var="num" begin="${paging.getFirst()}" end="${paging.getLast()}">
+                    <a href="main_menu?page=${num}">${num}</a>
+                </c:forEach>
+            </div>
         </div>
         <%@include file="../footer.jspf"%>
     </body>

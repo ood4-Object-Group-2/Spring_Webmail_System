@@ -399,13 +399,23 @@ public class SystemController {
 
     // 보낸 메일함
     @GetMapping("/mysent_mail")
-    public String sendMail(Model model) {
+    public String sendMail(Model model, @RequestParam("page") int page) {
         Pop3Agent pop3 = new Pop3Agent();
         pop3.setUserid((String) session.getAttribute("userid"));
 
         ArrayList<MessageFormatter> list = pop3.getSentMessageList(dbConfig);
-        model.addAttribute("list", list);
+        ArrayList<MessageFormatter> slice_list = new ArrayList<>();
+        Paging paging = new Paging(page, list.size());
+        
+        if(!list.isEmpty()){
+            for(int i=paging.getStartlist();i<paging.getEndlist()+1;i++){
+                slice_list.add(list.get(i-1));
+            }
+        }
+        
+        model.addAttribute("messageList", slice_list);
+        model.addAttribute("paging",paging);
+        
         return "sent_mail/mysent_mail";
-
     }
 }

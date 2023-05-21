@@ -41,7 +41,7 @@
         <p> <a href="trashcan"> 휴지통 </a> </p>
         <p> <a href="update_user"> 사용자 수정 </a> </P>
 
-        <p> <a href="mysent_mail"> 보낸 메일함 </a> </p>
+        <p> <a href="mysent_mail?page=1"> 보낸 메일함 </a> </p>
 
         <p><a href="remove_user"> 회원 탈퇴</a> </p>
         <p><a href="login.do?menu=<%= CommandType.LOGOUT%>">로그아웃</a></p>
