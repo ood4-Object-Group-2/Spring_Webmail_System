@@ -5,11 +5,14 @@
 package deu.cse.spring_webmail;
 
 import java.io.File;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 /**
  * 시스템에서 일정 시간마다 진행되는 함수들을 작성
  * @author User
  */
+@Service
 public class AutoSystem {
     
     
@@ -17,6 +20,7 @@ public class AutoSystem {
     /**
      * download폴더에서 README.txt파일을 제외한 폴더들을 리스트화 시킨다.
      */
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")//스케줄링 어노테이션 cron표현식으로 조건 지정
     public void searchDelFile(){
         String downloadPath = String.format("%s\\src\\main\\webapp\\WEB-INF\\download", System.getProperty("user.dir"));
         File[] file = new File(downloadPath).listFiles();
