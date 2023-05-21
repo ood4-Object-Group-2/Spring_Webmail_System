@@ -396,7 +396,10 @@ public class SystemController {
     public String TrashCan() {
         return "/trashcan";
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     // 보낸 메일함
     @GetMapping("/mysent_mail")
     public String sendMail(Model model) {

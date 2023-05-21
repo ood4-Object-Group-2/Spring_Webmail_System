@@ -18,6 +18,6 @@
             <strong>사용자: <%= session.getAttribute("userid") %> </strong>
         </span> <br> <br>
        
-        <p><a href="main_menu"> 이전 메뉴로 </a></p>
+        <p><a href="main_menu?page=1"> 이전 메뉴로 </a></p>
     </body>
 </html>
