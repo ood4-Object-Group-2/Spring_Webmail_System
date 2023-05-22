@@ -19,7 +19,7 @@
         <script>
             window.onload = function () {
                 if (window.history && window.history.pushState) {
-                    window.history.pushState('forward', null, './main_menu?page=1');
+                    window.history.pushState('forward', null, './#forward');
                     window.onpopstate = function (event) {
                         if (event.state == 'forward') {
                                     location.replace('<%= request.getContextPath()%>/index.jsp');
