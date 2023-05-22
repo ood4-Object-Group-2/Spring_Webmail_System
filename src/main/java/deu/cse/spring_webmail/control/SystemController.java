@@ -394,8 +394,26 @@ public class SystemController {
     
 
     @GetMapping("/trashcan")
-    public String TrashCan(){
+    public String TrashCan(Model model, @RequestParam("page") int page) {
+        Pop3Agent pop3 = new Pop3Agent();
+        pop3.setUserid((String) session.getAttribute("userid"));
+        
+        ArrayList<MessageFormatter> list = pop3.getTrashMessageList(dbConfig);
+        ArrayList<MessageFormatter> slice_list = new ArrayList<>();
+
+        Paging paging = new Paging(page, list.size());
+        
+        if (!list.isEmpty()) {
+            //출력할 메시지 목록만 슬라이싱
+            for (int i = paging.getStartlist(); i < paging.getEndlist() + 1; i++) {
+                slice_list.add(list.get(i - 1));
+            }
+        }
+
+        model.addAttribute("messageList", slice_list);
+        model.addAttribute("paging", paging);
         return "/trashcan";
+    }
 
     // 보낸 메일함
         @GetMapping("/mysent_mail")
