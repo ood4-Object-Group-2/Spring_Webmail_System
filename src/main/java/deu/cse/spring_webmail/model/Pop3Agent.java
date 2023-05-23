@@ -184,6 +184,69 @@ public class Pop3Agent {
             return list;
         }
     }
+    
+    //휴지통 메일함
+    public ArrayList<MessageFormatter> getTrashMessageList(HikariConfiguration dbConfig){
+        ArrayList<MessageFormatter> list = new ArrayList<>();
+        MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+        ArrayList<Message> messages = new ArrayList<>();
+
+        try {
+
+            String sql = "SELECT message_body from trash_mail where repository_name=?";  
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+            MimeMessage mimeMessage = null;
+
+            int co = 0;
+            while (rs.next()) {
+                mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), 
+                        rs.getBlob("message_body").getBinaryStream());
+                messages.add(mimeMessage);
+                co++;
+            }
+            list = formatter.getSentMessageTable(messages);
+        } catch (MessagingException | SQLException ex) {
+            log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
+        } finally {
+            return list;
+        }
+    }
+    
+    //메일을 휴지통으로 이동(미완성)
+    public void InsertTrashMessage(HikariConfiguration dbConfig){
+        ArrayList<MessageFormatter> list = new ArrayList<>();
+        MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+        ArrayList<Message> messages = new ArrayList<>();
+        try{
+            String msgno = Integer.toString(formatter.getNo());
+            String sql = "SELECT message_body FROM inbox where message_name = ?";//삭제할 메일 검색
+            //String sql2 = "INSERT INTO trash_mail values(?,?,'root','',?,?,'localhost','127.0.0.1','','',?)";  
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, msgno);
+            
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+            MimeMessage mimeMessage = null;
+            
+            int co = 0;
+            while (rs.next()) {
+                mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), 
+                        rs.getBlob("message_body").getBinaryStream());
+                messages.add(mimeMessage);
+                co++;
+            }
+        }
+        catch(MessagingException | SQLException ex){
+            log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
+        }
+    }
 
     public String getMessage(int n) {
         String result = "POP3  서버 연결이 되지 않아 메시지를 볼 수 없습니다.";
