@@ -54,10 +54,8 @@ public class ReadController {
     public String showMessage(@RequestParam Integer msgid, Model model) {
         log.debug("download_folder = {}", DOWNLOAD_FOLDER);
         
-        Pop3Agent pop3 = new Pop3Agent();
-        pop3.setHost((String) session.getAttribute("host"));
-        pop3.setUserid((String) session.getAttribute("userid"));
-        pop3.setPassword((String) session.getAttribute("password"));
+        Pop3Agent pop3 = new Pop3Agent((String) session.getAttribute("host"),(String) session.getAttribute("userid"),(String) session.getAttribute("password"));
+        
         pop3.setRequest(request);
         
         String msg = pop3.getMessage(msgid);

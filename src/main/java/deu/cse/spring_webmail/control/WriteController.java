@@ -124,7 +124,7 @@ public class WriteController {
 
         if (fileName != null && !"".equals(fileName)) {
             long fileSize = upFile.getSize();
-            if (fileSize <= 100) {  // 첨부파일 크기 제한 (70byte로 제한)
+            if (fileSize <= 52428800) {  // 첨부파일 크기 제한 (70byte로 제한)
                 log.debug("sendMessage: 파일({}) 첨부 필요", fileName);
                 File f = new File(ctx.getRealPath(UPLOAD_FOLDER) + File.separator + fileName);
                 agent.setFile1(f.getAbsolutePath());
