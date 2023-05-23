@@ -118,7 +118,7 @@ public class Pop3Agent {
     /*
      * 페이지 단위로 메일 목록을 보여주어야 함.
      */
-    public ArrayList<MessageFormatter> getMessageList(HikariConfiguration dbConfig) {
+     public ArrayList<MessageFormatter> getMessageList(HikariConfiguration dbConfig) {
         //컨트롤러에서 dbConfig 정보를 받아와서 사용
 
         ArrayList<MessageFormatter> list = new ArrayList<>();
@@ -128,28 +128,90 @@ public class Pop3Agent {
         try {
             //DB에서 메시지 값을 가져와서 읽기
             //inbox에서 메일 정복가 있는 message_body를 불러와서 처리
-            String sql = "SELECT message_body from inbox where repository_name=?";
+            String sql = "SELECT message_body, message_name from inbox where repository_name=?";
             javax.sql.DataSource ds = dbConfig.dataSouce();
             conn = ds.getConnection();
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, userid);
             log.debug("sql = {}", pstmt);
             rs = pstmt.executeQuery();
+
+            // 메일 읽음 여부를 확인하기 위해 read_mail 테이블에 사용자가 받은 메일이 없는 경우 추가
+            String insertSql = "INSERT INTO read_mail (message_name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM read_mail WHERE message_name = ?)";
+            PreparedStatement insert_pstmt = conn.prepareStatement(insertSql);
+
             MimeMessage mimeMessage = null;
 
             int co = 0;
             while (rs.next()) {
+                String message_name = rs.getString("message_name");
+
+                insert_pstmt.setString(1, message_name);
+                insert_pstmt.setString(2, message_name);
+                insert_pstmt.addBatch();
+
                 //Message 객체에 담을 수 있도록 message_body를 사용하여 MimeMessage 객체 사용
                 mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), rs.getBlob("message_body").getBinaryStream());
                 //messages[co] = mimeMessage;
                 messages.add(mimeMessage);
                 co++;
             }
+            insert_pstmt.executeBatch();
+            insert_pstmt.close();
+
             list = formatter.getMessageTable(messages);
         } catch (MessagingException | SQLException ex) {
             log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
         } finally {
             return list;
+        }
+    }
+     
+     // 읽은 메일을 추출하기 위함
+      public ArrayList<String> ReadCheck(HikariConfiguration dbConfig) {
+        ArrayList<String> r_check = new ArrayList<>();
+        try {
+            String sql = "SELECT r.message_name FROM inbox as i JOIN read_mail as r ON i.message_name=r.message_name WHERE i.repository_name=? and r.read_check=1";
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String messageName = rs.getString("r.message_name");
+                r_check.add(messageName);
+            }
+
+        } catch (SQLException ex) {
+            log.error("read_mail check sql 오류() : execption={}", ex.getMessage());
+        } finally {
+            return r_check;
+        }
+    }
+
+    // 메일 읽음 확인을 위해 사용자가 받은 메일 추출
+    public ArrayList<String> GetMessageId(HikariConfiguration dbConfig) {
+        ArrayList<String> get_id = new ArrayList<>();
+        try {
+            String sql = "SELECT message_name FROM inbox WHERE repository_name=?";
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String messageName = rs.getString("message_name");
+                get_id.add(messageName);
+            }
+
+        } catch (SQLException ex) {
+            log.error("GetMessageId sql 오류() : execption={}", ex.getMessage());
+        } finally {
+            return get_id;
         }
     }
 
