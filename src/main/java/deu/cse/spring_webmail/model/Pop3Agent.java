@@ -118,7 +118,7 @@ public class Pop3Agent {
     /*
      * 페이지 단위로 메일 목록을 보여주어야 함.
      */
-     public ArrayList<MessageFormatter> getMessageList(HikariConfiguration dbConfig) {
+    public ArrayList<MessageFormatter> getMessageList(HikariConfiguration dbConfig) {
         //컨트롤러에서 dbConfig 정보를 받아와서 사용
 
         ArrayList<MessageFormatter> list = new ArrayList<>();
@@ -166,9 +166,9 @@ public class Pop3Agent {
             return list;
         }
     }
-     
-     // 읽은 메일을 추출하기 위함
-      public ArrayList<String> ReadCheck(HikariConfiguration dbConfig) {
+
+    // 읽은 메일을 추출하기 위함
+    public ArrayList<String> ReadCheck(HikariConfiguration dbConfig) {
         ArrayList<String> r_check = new ArrayList<>();
         try {
             String sql = "SELECT r.message_name FROM inbox as i JOIN read_mail as r ON i.message_name=r.message_name WHERE i.repository_name=? and r.read_check=1";
@@ -215,6 +215,28 @@ public class Pop3Agent {
         }
     }
 
+    private int messageIndex;   // 읽음으로 변환하기 위한 메일 번호를 가져옴
+
+    // 메일 읽음 업데이트
+    public void UpdateRead(HikariConfiguration dbConfig) {
+        ArrayList<String> messageIdList = GetMessageId(dbConfig);
+
+        int n = messageIndex - 1;
+        String message_name = messageIdList.get(n);
+
+        try {
+            String sql = "UPDATE read_mail SET read_check = 1 WHERE message_name = ?";
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, message_name);
+            log.debug("sql = {}", pstmt);
+            pstmt.executeUpdate();
+        } catch (SQLException ex) {
+            log.error("UpdateRead sql 오류() : execption={}", ex.getMessage());
+        }
+    }
+
     // 보낸 메일함
     public ArrayList<MessageFormatter> getSentMessageList(HikariConfiguration dbConfig) {
 
@@ -224,7 +246,7 @@ public class Pop3Agent {
 
         try {
 
-            String sql = "SELECT message_body from inbox where sender=?";  
+            String sql = "SELECT message_body from inbox where sender=?";
             javax.sql.DataSource ds = dbConfig.dataSouce();
             conn = ds.getConnection();
             pstmt = conn.prepareStatement(sql);
@@ -266,6 +288,8 @@ public class Pop3Agent {
             sender = formatter.getSender();  // 220612 LJM - added
             subject = formatter.getSubject();
             body = formatter.getBody();
+
+            messageIndex = n;   // 읽음 처리를 하기 위해 메일 번호 저장
 
             folder.close(true);
             store.close();
