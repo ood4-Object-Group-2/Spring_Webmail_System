@@ -48,16 +48,25 @@
                         <th> 제목 </th>
                         <th> 보낸 날짜 </th>
                         <th> 삭제 </th>
+                        <td> 읽음 여부 </td>
                     </tr>
                 </thead>
                 <tbody>
-                    <c:forEach items="${messageList}" var="list">
+                    <c:forEach items="${messageList}" var="list" varStatus="status">
                         <tr style="border-bottom: thin solid black">
                             <td id="no">${list.getNo()}</td>
                             <td id="sender">${list.getSender()}</td>
                             <td id="subject"><a href="show_message?msgid=${list.getNo()}">${list.getSubject()}</a></td>
                             <td id="date">${list.getDate()}</td>
                             <td id="delete"><a href="delete_mail.do?msgid=${list.getNo()}">삭제</a></td>
+                            <td id="delete">
+                                <c:set var="isRead" value="false" />
+                                <c:forEach var="i" begin="0" end="${message_id.size() - 1}" step="1">
+                                    <c:if test="${message_id[message_id.size() - 1 - status.index] == r_check[message_id.size() - 1 - i]}">
+                                        <c:set var="isRead" value="true" /> 읽음
+                                    </c:if>
+                                </c:forEach>
+                            </td>
                         </tr>
                     </c:forEach>
                 </tbody>

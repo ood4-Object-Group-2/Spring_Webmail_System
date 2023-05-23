@@ -149,6 +149,13 @@ public class SystemController {
         //pop3.setPassword((String) session.getAttribute("password"));
         ArrayList<MessageFormatter> list = pop3.getMessageList(dbConfig);
         ArrayList<MessageFormatter> slice_list = new ArrayList<>();
+        
+        // 메일 읽음 추가
+        ArrayList<String> r_check = pop3.ReadCheck(dbConfig);
+        ArrayList<String> GetMessageId = pop3.GetMessageId(dbConfig);
+        
+       // Collections.reverse(GetMessageId);
+        
         Paging paging = new Paging(page, list.size());
         if (!list.isEmpty()) {
             //출력할 메시지 목록만 슬라이싱
@@ -159,6 +166,9 @@ public class SystemController {
 
         model.addAttribute("messageList", slice_list);
         model.addAttribute("paging", paging);
+        model.addAttribute("r_check", r_check);
+        model.addAttribute("message_id", GetMessageId);
+
         return "main_menu";
     }
 
