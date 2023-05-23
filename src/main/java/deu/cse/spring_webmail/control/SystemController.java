@@ -295,7 +295,7 @@ public class SystemController {
             List<String> userList = getUserList();
 
             if (pw.equals(password)) {
-                agent.deleteUsers(id, userList);
+                agent.deleteUsers(id, userList, dbConfig);
                 attrs.addFlashAttribute("msg", String.format("회원탈퇴가 완료되었습니다."));
             } else {
                 attrs.addFlashAttribute("msg", String.format(pw + "비밀번호가 일치하지 않습니다."));
@@ -333,7 +333,7 @@ public class SystemController {
             String cwd = ctx.getRealPath(".");
             UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
                     ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
-            agent.deleteUsers(selectedUsers);  // 수정!!!
+            agent.deleteUsers(selectedUsers,dbConfig);  // 수정!!!
         } catch (Exception ex) {
             log.error("delete_user.do : 예외 = {}", ex);
         }

@@ -4,17 +4,18 @@
  */
 package deu.cse.spring_webmail.model;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  *
@@ -35,7 +36,10 @@ public class UserAdminAgent {
     // private final String EOL = "\n";
     private final String EOL = "\r\n";
     private String cwd;
-
+    
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    
     public UserAdminAgent() {
     }
 
@@ -210,7 +214,7 @@ public class UserAdminAgent {
         return userList;
     } // parseUserList()
 
-    public boolean deleteUsers(String[] userList) {
+    public boolean deleteUsers(String[] userList,HikariConfiguration dbConfig) {
         byte[] messageBuffer = new byte[1024];
         String command;
         String recvMessage;
@@ -236,6 +240,7 @@ public class UserAdminAgent {
                 log.debug("recvMessage = {}", recvMessage);
                 if (recvMessage.contains("deleted")) {
                     status = true;
+                    insertDelUser(dbConfig, userId);
                 }
             }
             quit();
@@ -246,7 +251,7 @@ public class UserAdminAgent {
         }
     }  // deleteUsers()
     
-      public boolean deleteUsers(String loginid, List<String> userList) {   // 회원 탈퇴를 위한 메서드
+      public boolean deleteUsers(String loginid, List<String> userList,HikariConfiguration dbConfig) {   // 회원 탈퇴를 위한 메서드
         byte[] messageBuffer = new byte[1024];
         String command;
         String recvMessage;
@@ -272,6 +277,7 @@ public class UserAdminAgent {
                     recvMessage = new String(messageBuffer);
                     log.debug("recvMessage = {}", recvMessage);
                     if (recvMessage.contains("deleted")) {
+                        insertDelUser(dbConfig,userId);
                         status = true;
                     }
                 }
@@ -380,4 +386,27 @@ public class UserAdminAgent {
             return status;
         }
     }
+    
+    //유저 아이디를 삭제할 때 삭제한 아이디를 DB에 저장하는 함수
+    public void insertDelUser(HikariConfiguration dbConfig, String userid){
+        String sql = "insert into deaduser values (?)";
+            
+        try {
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            pstmt.executeUpdate();
+            
+            if(conn != null){conn.close();}
+            if(pstmt != null){pstmt.close();}
+        } catch (SQLException ex) {
+            Logger.getLogger(UserAdminAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
+    //삭제된 이름으로 아이디 확인이 불가능하도록 하는 체크 함수
+    
+    
 }
