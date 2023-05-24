@@ -4,17 +4,19 @@
  */
 package deu.cse.spring_webmail.model;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  *
@@ -35,7 +37,11 @@ public class UserAdminAgent {
     // private final String EOL = "\n";
     private final String EOL = "\r\n";
     private String cwd;
-
+    
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    
     public UserAdminAgent() {
     }
 
@@ -66,13 +72,14 @@ public class UserAdminAgent {
      *
      * @param userId
      * @param password
+     * @param dbConfig
      * @return a boolean value as follows: - true: addUser operation successful
      * - false: addUser operation failed
      */
     // return value:
     //   - true: addUser operation successful
     //   - false: addUser operation failed
-    public boolean addUser(String userId, String password) {
+    public boolean addUser(String userId, String password,HikariConfiguration dbConfig) {
         boolean status = false;
         byte[] messageBuffer = new byte[1024];
 
@@ -82,22 +89,27 @@ public class UserAdminAgent {
         }
 
         try {
-            // 1: "adduser" command
-            String addUserCommand = "adduser " + userId + " " + password + EOL;
-            os.write(addUserCommand.getBytes());
-
-            // 2: response for "adduser" command
-            java.util.Arrays.fill(messageBuffer, (byte) 0);
-            //if (is.available() > 0) {
-            is.read(messageBuffer);
-            String recvMessage = new String(messageBuffer);
-            log.debug(recvMessage);
-            //}
-            // 3: 기존 메일사용자 여부 확인
-            if (recvMessage.contains("added")) {
-                status = true;
-            } else {
+            //로그인이 되어있던 기록이 있는지 먼저 확인 후 addUser 커맨드 실행
+            if(!checkExist(dbConfig, userId)){
                 status = false;
+            }else{
+                // 1: "adduser" command
+                String addUserCommand = "adduser " + userId + " " + password + EOL;
+                os.write(addUserCommand.getBytes());
+
+                // 2: response for "adduser" command
+                java.util.Arrays.fill(messageBuffer, (byte) 0);
+                //if (is.available() > 0) {
+                is.read(messageBuffer);
+                String recvMessage = new String(messageBuffer);
+                log.debug(recvMessage);
+                //}
+                // 3: 기존 메일사용자 여부 확인
+                if (recvMessage.contains("added")) {
+                    status = true;
+                } else {
+                    status = false;
+                }
             }
             // 4: 연결 종료
             quit();
@@ -210,7 +222,7 @@ public class UserAdminAgent {
         return userList;
     } // parseUserList()
 
-    public boolean deleteUsers(String[] userList) {
+    public boolean deleteUsers(String[] userList,HikariConfiguration dbConfig) {
         byte[] messageBuffer = new byte[1024];
         String command;
         String recvMessage;
@@ -236,6 +248,7 @@ public class UserAdminAgent {
                 log.debug("recvMessage = {}", recvMessage);
                 if (recvMessage.contains("deleted")) {
                     status = true;
+                    insertDelUser(dbConfig, userId);
                 }
             }
             quit();
@@ -246,7 +259,7 @@ public class UserAdminAgent {
         }
     }  // deleteUsers()
     
-      public boolean deleteUsers(String loginid, List<String> userList) {   // 회원 탈퇴를 위한 메서드
+      public boolean deleteUsers(String loginid, List<String> userList,HikariConfiguration dbConfig) {   // 회원 탈퇴를 위한 메서드
         byte[] messageBuffer = new byte[1024];
         String command;
         String recvMessage;
@@ -272,6 +285,7 @@ public class UserAdminAgent {
                     recvMessage = new String(messageBuffer);
                     log.debug("recvMessage = {}", recvMessage);
                     if (recvMessage.contains("deleted")) {
+                        insertDelUser(dbConfig,userId);
                         status = true;
                     }
                 }
@@ -380,4 +394,50 @@ public class UserAdminAgent {
             return status;
         }
     }
+    
+    //유저 아이디를 삭제할 때 삭제한 아이디를 DB에 저장하는 함수
+    public void insertDelUser(HikariConfiguration dbConfig, String userid){
+        String sql = "insert into deaduser values (?)";
+            
+        try {
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            pstmt.executeUpdate();
+            
+            if(conn != null){conn.close();}
+            if(pstmt != null){pstmt.close();}
+        } catch (SQLException ex) {
+            Logger.getLogger(UserAdminAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
+    //삭제된 이름으로 아이디 확인이 불가능하도록 하는 체크 함수
+    public boolean checkExist(HikariConfiguration dbConfig, String userid){
+        
+        String sql = "select username from deaduser where username=?";
+        
+         
+        try {
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            rs = pstmt.executeQuery();
+            
+            if(rs.next()){
+                return false;
+            }
+            
+            if(conn != null){conn.close();}
+            if(pstmt != null){pstmt.close();}
+            if(rs != null){rs.close();}
+        } catch (SQLException ex) {
+            Logger.getLogger(UserAdminAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return true;
+    }
+    
 }
