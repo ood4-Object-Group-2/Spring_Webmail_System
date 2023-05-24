@@ -21,7 +21,7 @@
         </script>
     </head>
     <body>
-        <jsp:include page="../header.jspf" />
+        <%@include file="../header.jspf"%>
 
         <div id="sidebar">
             <%-- 사용자 추가때와 동일하므로 같은 메뉴 사용함. --%>
@@ -51,6 +51,6 @@
             </form>
         </div>
 
-        <jsp:include page="../footer.jspf" />
+        <%@include file="../footer.jspf" %>
     </body>
 </html>
