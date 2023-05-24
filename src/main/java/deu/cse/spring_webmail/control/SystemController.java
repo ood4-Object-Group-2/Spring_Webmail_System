@@ -122,7 +122,7 @@ public class SystemController {
             default:
                 break;
         }
-        attrs.addFlashAttribute("msg",String.format(str));
+        attrs.addFlashAttribute("msg", String.format(str));
         return url;
     }
 
@@ -149,6 +149,13 @@ public class SystemController {
         //pop3.setPassword((String) session.getAttribute("password"));
         ArrayList<MessageFormatter> list = pop3.getMessageList(dbConfig);
         ArrayList<MessageFormatter> slice_list = new ArrayList<>();
+        
+        // 메일 읽음 추가
+        ArrayList<String> r_check = pop3.ReadCheck(dbConfig);
+        ArrayList<String> GetMessageId = pop3.GetMessageId(dbConfig);
+        
+       // Collections.reverse(GetMessageId);
+        
         Paging paging = new Paging(page, list.size());
         if (!list.isEmpty()) {
             //출력할 메시지 목록만 슬라이싱
@@ -159,6 +166,9 @@ public class SystemController {
 
         model.addAttribute("messageList", slice_list);
         model.addAttribute("paging", paging);
+        model.addAttribute("r_check", r_check);
+        model.addAttribute("message_id", GetMessageId);
+
         return "main_menu";
     }
 
@@ -391,7 +401,6 @@ public class SystemController {
     public String signUp() {
         return "/sign_up";
     }
-    
 
     @GetMapping("/trashcan")
     public String TrashCan(Model model, @RequestParam("page") int page) {
@@ -416,14 +425,25 @@ public class SystemController {
     }
 
     // 보낸 메일함
-        @GetMapping("/mysent_mail")
-    public String sendMail(Model model) {
+    @GetMapping("/mysent_mail")
+    public String sendMail(Model model, @RequestParam("page") int page) {
         Pop3Agent pop3 = new Pop3Agent();
         pop3.setUserid((String) session.getAttribute("userid"));
 
         ArrayList<MessageFormatter> list = pop3.getSentMessageList(dbConfig);
-        model.addAttribute("list",list);
+        ArrayList<MessageFormatter> slice_list = new ArrayList<>();
+        Paging paging = new Paging(page, list.size());
+        
+        if(!list.isEmpty()){
+            for(int i=paging.getStartlist();i<paging.getEndlist()+1;i++){
+                slice_list.add(list.get(i-1));
+            }
+        }
+        
+        model.addAttribute("messageList", slice_list);
+        model.addAttribute("paging",paging);
+        
         return "sent_mail/mysent_mail";
-
     }
 }
+
