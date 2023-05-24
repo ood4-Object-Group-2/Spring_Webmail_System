@@ -199,7 +199,7 @@ public class SystemController {
 
             // if (addUser successful)  사용자 등록 성공 팦업창
             // else 사용자 등록 실패 팝업창
-            if (agent.addUser(id, password)) {
+            if (agent.addUser(id, password, dbConfig)) {
                 attrs.addFlashAttribute("msg", String.format("사용자(%s) 추가를 성공하였습니다.", id));
             } else {
                 attrs.addFlashAttribute("msg", String.format("사용자(%s) 추가를 실패하였습니다.", id));
@@ -261,10 +261,10 @@ public class SystemController {
             // if (addUser successful)  사용자 등록 성공 팦업창
             // else 사용자 등록 실패 팝업창
             if (pw.equals(check_pw)) {
-                if (agent.addUser(id, pw)) {
+                if (agent.addUser(id, pw,dbConfig)) {
                     attrs.addFlashAttribute("msg", String.format("회원가입에 성공하였습니다."));
                 } else {
-                    attrs.addFlashAttribute("msg", String.format("이미 사용자가 존재합니다."));
+                    attrs.addFlashAttribute("msg", String.format("[%s] 아이디를 사용할 수 없습니다", id));
                     url += "sign_up";
                 }
             } else {
