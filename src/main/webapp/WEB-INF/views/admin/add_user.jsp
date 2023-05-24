@@ -15,7 +15,7 @@
         <link type="text/css" rel="stylesheet" href="css/main_style.css" />
     </head>
     <body>
-        <jsp:include page="../header.jspf" />
+        <%@include file="../header.jspf"%>
 
         <div id="sidebar">
             <jsp:include page="sidebar_admin_previous_menu.jsp" />
@@ -45,6 +45,6 @@
             </form>
         </div>
 
-        <jsp:include page="../footer.jspf" />
+        <%@include file="../footer.jspf" %>
     </body>
 </html>
