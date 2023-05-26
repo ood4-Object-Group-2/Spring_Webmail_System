@@ -31,11 +31,11 @@
                 <table>
                     <tr>
                         <td style="text-align: right;">I&nbsp;&nbsp;&nbsp;D :</td>
-                        <td><input type="text" name="id"></td>
+                        <td><input type="text" name="id" minlength="3" maxlength="20"></td>
                     </tr>
                     <tr>
                         <td style="text-align: right;">P&nbsp;&nbsp;W :</td>
-                        <td><input type="password" name="pw"></td>
+                        <td><input type="password" name="pw" minlength="6" maxlength="16"></td>
                     </tr>
                     <tr>
                         <td style="text-align: right;">Check PW :</td>

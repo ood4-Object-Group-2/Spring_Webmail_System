@@ -33,6 +33,7 @@ import java.sql.*;
 @PropertySource("classpath:/system.properties")
 @Slf4j
 public class WriteController {
+
     @Value("${file.upload_folder}")
     private String UPLOAD_FOLDER;
     @Value("${file.max_size}")
@@ -42,8 +43,10 @@ public class WriteController {
     private ServletContext ctx;
     @Autowired
     private HttpSession session;
+
     @Autowired
     private HikariConfiguration dbConfig;
+
 
     @GetMapping("/write_mail")
     public String writeMail() {
@@ -116,9 +119,10 @@ public class WriteController {
             }
         }
         
+
         return url;
     }
-    
+
     /**
      * FormParser 클래스를 사용하지 않고 Spring Framework에서 이미 획득한 매개변수 정보를 사용하도록 기존
      * webmail 소스 코드를 수정함.
@@ -153,7 +157,8 @@ public class WriteController {
 
         if (fileName != null && !"".equals(fileName)) {
             long fileSize = upFile.getSize();
-            if (fileSize <= 100) {  // 첨부파일 크기 제한 (70byte로 제한)
+
+            if (fileSize <= 52428800) {  // 첨부파일 크기 제한 (70byte로 제한)
                 log.debug("sendMessage: 파일({}) 첨부 필요", fileName);
                 File f = new File(ctx.getRealPath(UPLOAD_FOLDER) + File.separator + fileName);
                 agent.setFile1(f.getAbsolutePath());

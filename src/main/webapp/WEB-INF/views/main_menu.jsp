@@ -11,15 +11,6 @@
 
 <!DOCTYPE html>
 
-<!-- 제어기에서 처리하면 로직 관련 소스 코드 제거 가능!
-<jsp:useBean id="pop3" scope="page" class="deu.cse.spring_webmail.model.Pop3Agent" />
-<%
-    pop3.setHost((String) session.getAttribute("host"));
-    pop3.setUserid((String) session.getAttribute("userid"));
-    pop3.setPassword((String) session.getAttribute("password"));
-%>
--->
-
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -27,7 +18,7 @@
         <link type="text/css" rel="stylesheet" href="css/main_style.css" />
         <script>
             <c:if test="${!empty msg}">
-            alert("${msg}");
+                alert("${msg}");
             </c:if>
         </script>
     </head>
@@ -48,16 +39,25 @@
                         <th> 제목 </th>
                         <th> 보낸 날짜 </th>
                         <th> 삭제 </th>
+                        <td> 읽음 여부 </td>
                     </tr>
                 </thead>
                 <tbody>
-                    <c:forEach items="${messageList}" var="list">
+                    <c:forEach items="${messageList}" var="list" varStatus="status">
                         <tr style="border-bottom: thin solid black">
                             <td id="no">${list.getNo()}</td>
                             <td id="sender">${list.getSender()}</td>
                             <td id="subject"><a href="show_message?msgid=${list.getNo()}">${list.getSubject()}</a></td>
                             <td id="date">${list.getDate()}</td>
                             <td id="delete"><a href="delete_mail.do?msgid=${list.getNo()}">삭제</a></td>
+                            <td id="delete">
+                                <c:set var="isRead" value="false" />
+                                <c:forEach var="i" begin="0" end="${message_id.size() - 1}" step="1">
+                                    <c:if test="${message_id[message_id.size() - 1 - status.index] == r_check[message_id.size() - 1 - i]}">
+                                        <c:set var="isRead" value="true" /> 읽음
+                                    </c:if>
+                                </c:forEach>
+                            </td>
                         </tr>
                     </c:forEach>
                 </tbody>

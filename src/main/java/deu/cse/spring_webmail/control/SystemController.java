@@ -199,7 +199,7 @@ public class SystemController {
 
             // if (addUser successful)  사용자 등록 성공 팦업창
             // else 사용자 등록 실패 팝업창
-            if (agent.addUser(id, password)) {
+            if (agent.addUser(id, password, dbConfig)) {
                 attrs.addFlashAttribute("msg", String.format("사용자(%s) 추가를 성공하였습니다.", id));
             } else {
                 attrs.addFlashAttribute("msg", String.format("사용자(%s) 추가를 실패하였습니다.", id));
@@ -261,10 +261,10 @@ public class SystemController {
             // if (addUser successful)  사용자 등록 성공 팦업창
             // else 사용자 등록 실패 팝업창
             if (pw.equals(check_pw)) {
-                if (agent.addUser(id, pw)) {
+                if (agent.addUser(id, pw,dbConfig)) {
                     attrs.addFlashAttribute("msg", String.format("회원가입에 성공하였습니다."));
                 } else {
-                    attrs.addFlashAttribute("msg", String.format("이미 사용자가 존재합니다."));
+                    attrs.addFlashAttribute("msg", String.format("[%s] 아이디를 사용할 수 없습니다", id));
                     url += "sign_up";
                 }
             } else {
@@ -295,7 +295,7 @@ public class SystemController {
             List<String> userList = getUserList();
 
             if (pw.equals(password)) {
-                agent.deleteUsers(id, userList);
+                agent.deleteUsers(id, userList, dbConfig);
                 attrs.addFlashAttribute("msg", String.format("회원탈퇴가 완료되었습니다."));
             } else {
                 attrs.addFlashAttribute("msg", String.format(pw + "비밀번호가 일치하지 않습니다."));
@@ -333,7 +333,7 @@ public class SystemController {
             String cwd = ctx.getRealPath(".");
             UserAdminAgent agent = new UserAdminAgent(JAMES_HOST, JAMES_CONTROL_PORT, cwd,
                     ROOT_ID, ROOT_PASSWORD, ADMINISTRATOR);
-            agent.deleteUsers(selectedUsers);  // 수정!!!
+            agent.deleteUsers(selectedUsers,dbConfig);  // 수정!!!
         } catch (Exception ex) {
             log.error("delete_user.do : 예외 = {}", ex);
         }
@@ -403,6 +403,7 @@ public class SystemController {
     }
 
     @GetMapping("/trashcan")
+
     public String TrashCan(Model model, @RequestParam("page") int page) {
         Pop3Agent pop3 = new Pop3Agent();
         pop3.setUserid((String) session.getAttribute("userid"));

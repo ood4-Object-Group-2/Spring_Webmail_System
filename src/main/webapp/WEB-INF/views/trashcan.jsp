@@ -57,7 +57,9 @@
                             <td id="subject"><a href="show_message?msgid=${list.getNo()}">${list.getSubject()}</a></td>
                             <td id="date">${list.getDate()}</td>
                             <td>복구</td>
+
                             <td id="delete"><a href="perpectdelete_mail.do?msgid=${list.getNo()}">완전 삭제</a></td>
+
                         </tr>
                     </c:forEach>
                 </tbody>

@@ -55,6 +55,6 @@
             </ul>
         </div>
 
-        <jsp:include page="../footer.jspf" />
+        <%@include file="../footer.jspf" %>
     </body>
 </html>
