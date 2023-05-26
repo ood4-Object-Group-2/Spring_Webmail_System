@@ -58,9 +58,6 @@ public class ReadController {
     @Autowired
     private HikariConfiguration dbConfig;
 
-    @Autowired
-    private HikariConfiguration dbConfig;
-
     @GetMapping("/show_message")
     public String showMessage(@RequestParam Integer msgid, Model model) {
         log.debug("download_folder = {}", DOWNLOAD_FOLDER);
