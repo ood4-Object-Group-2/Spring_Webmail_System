@@ -24,6 +24,11 @@
         <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
         <title>휴지통</title>
         <link type="text/css" rel="stylesheet" href="css/main_style.css" />
+        <script>
+            <c:if test="${!empty msg}">
+                alert("${msg}");
+            </c:if>
+        </script>
     </head>
     <body>
         <%@include file="header.jspf"%>
@@ -52,7 +57,9 @@
                             <td id="subject"><a href="show_message?msgid=${list.getNo()}">${list.getSubject()}</a></td>
                             <td id="date">${list.getDate()}</td>
                             <td>복구</td>
-                            <td id="delete"><a href="delete_mail.do?msgid=${list.getNo()}">완전 삭제</a></td>
+
+                            <td id="delete"><a href="perpectdelete_mail.do?msgid=${list.getNo()}">완전 삭제</a></td>
+
                         </tr>
                     </c:forEach>
                 </tbody>

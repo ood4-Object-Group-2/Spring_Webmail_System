@@ -32,6 +32,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -50,6 +54,9 @@ public class ReadController {
     private HttpServletRequest request;
     @Value("${file.download_folder}")
     private String DOWNLOAD_FOLDER;
+    
+    @Autowired
+    private HikariConfiguration dbConfig;
 
     @Autowired
     private HikariConfiguration dbConfig;
@@ -117,21 +124,72 @@ public class ReadController {
     }
 
     @GetMapping("/delete_mail.do")
-    public String deleteMailDo(@RequestParam("msgid") Integer msgId, RedirectAttributes attrs) {
+    public String deleteMailDo(@RequestParam("msgid") Integer msgId, Model model, RedirectAttributes attrs) {
         log.debug("delete_mail.do: msgid = {}", msgId);
 
         String host = (String) session.getAttribute("host");
         String userid = (String) session.getAttribute("userid");
         String password = (String) session.getAttribute("password");
-
+        
         Pop3Agent pop3 = new Pop3Agent(host, userid, password);
+        ArrayList<String> GetMessageId = pop3.GetMessageId(dbConfig);
+        model.addAttribute("message_id", GetMessageId);//삭제할 메일 ID 가져옴.
+        String mailID = GetMessageId.toString();//메일 ID를 SQL문으로 사용할 String형으로 변환
+        String splitmailID = mailID.substring(1,20);//일부 문자 삭제해서 Mail ID만을 완전히 반환
+        try {
+            String sql = "INSERT INTO trash_mail SELECT * FROM inbox where message_name = ?";//삭제할 메일 검색
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            Connection conn = ds.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, splitmailID);
+            log.debug("sql = {}", pstmt);
+            pstmt.executeUpdate();
+            
+        } catch (SQLException ex) {
+            log.debug("SQL문 오류 : " + ex.getMessage());
+        }
         boolean deleteSuccessful = pop3.deleteMessage(msgId, true);
         if (deleteSuccessful) {
             attrs.addFlashAttribute("msg", "메시지 삭제를 성공하였습니다.");
-        } else {
+            
+        } 
+        else {
             attrs.addFlashAttribute("msg", "메시지 삭제를 실패하였습니다.");
+            
         }
 
-        return "redirect:main_menu";
+        
+        return "redirect:main_menu?page=1";
+    }
+    
+    @GetMapping("/perpectdelete_mail.do")
+    public String PerpectDeleteMailDo(@RequestParam("msgid") Integer msgId, Model model, RedirectAttributes attrs){
+        log.debug("delete_mail.do: msgid = {}", msgId);
+            
+        String host = (String) session.getAttribute("host");
+        String userid = (String) session.getAttribute("userid");
+        String password = (String) session.getAttribute("password");
+        
+        Pop3Agent pop3 = new Pop3Agent(host, userid, password);
+        ArrayList<String> GetTrashMessageId = pop3.GetTrashMessageId(dbConfig);
+        model.addAttribute("message_id", GetTrashMessageId);//삭제할 휴지통 메일 ID 가져옴.
+        String mailID = GetTrashMessageId.toString();//휴지통 메일 ID를 SQL문으로 사용할 String형으로 변환
+        String splitmailID = mailID.substring(1,20);//일부 문자 삭제해서 휴지통 Mail ID만을 완전히 반환
+        try{
+            String sql = "DELETE FROM trash_mail where message_name = ?";//삭제할 휴지통 메일 검색
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            Connection conn = ds.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, splitmailID);
+            log.debug("sql = {}", pstmt);
+            pstmt.executeUpdate();
+            attrs.addFlashAttribute("msg", "해당 메일을 완전히 삭제하였습니다.");
+        }
+        catch (SQLException ex) {
+            attrs.addFlashAttribute("msg", "오류 : 해당 메일을 완전히 삭제하지 못하였습니다.");  
+            log.debug("SQL문 오류 : " + ex.getMessage());
+        }
+        return "redirect:trashcan?page=1";
+
     }
 }

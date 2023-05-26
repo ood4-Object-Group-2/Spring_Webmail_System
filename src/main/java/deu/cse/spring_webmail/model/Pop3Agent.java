@@ -16,8 +16,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -91,17 +94,16 @@ public class Pop3Agent {
         if (!connectToStore()) {
             return status;
         }
-
         try {
             // Folder 설정
 //            Folder folder = store.getDefaultFolder();
             Folder folder = store.getFolder("INBOX");
             folder.open(Folder.READ_WRITE);
-
             // Message에 DELETED flag 설정
             Message msg = folder.getMessage(msgid);
+            //MessageTest();
+            log.debug("삭제할 메일 : " + msg);
             msg.setFlag(Flags.Flag.DELETED, really_delete);
-
             // 폴더에서 메시지 삭제
             // Message [] expungedMessage = folder.expunge();
             // <-- 현재 지원 안 되고 있음. 폴더를 close()할 때 expunge해야 함.
@@ -115,9 +117,6 @@ public class Pop3Agent {
         }
     }
 
-    /*
-     * 페이지 단위로 메일 목록을 보여주어야 함.
-     */
     public ArrayList<MessageFormatter> getMessageList(HikariConfiguration dbConfig) {
         //컨트롤러에서 dbConfig 정보를 받아와서 사용
 
@@ -257,7 +256,8 @@ public class Pop3Agent {
 
             int co = 0;
             while (rs.next()) {
-                mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), rs.getBlob("message_body").getBinaryStream());
+                mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), 
+                        rs.getBlob("message_body").getBinaryStream());
                 messages.add(mimeMessage);
                 co++;
             }
@@ -266,6 +266,62 @@ public class Pop3Agent {
             log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
         } finally {
             return list;
+        }
+    }
+
+    //휴지통 메일함
+    public ArrayList<MessageFormatter> getTrashMessageList(HikariConfiguration dbConfig){
+        ArrayList<MessageFormatter> list = new ArrayList<>();
+        MessageFormatter formatter = new MessageFormatter(userid);  //3.5
+        ArrayList<Message> messages = new ArrayList<>();
+
+        try {
+
+            String sql = "SELECT message_body from trash_mail where repository_name=?";  
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+            MimeMessage mimeMessage = null;
+
+            int co = 0;
+            while (rs.next()) {
+                mimeMessage = new MimeMessage(Session.getDefaultInstance(System.getProperties()), 
+                        rs.getBlob("message_body").getBinaryStream());
+                messages.add(mimeMessage);
+                co++;
+            }
+            list = formatter.getSentMessageTable(messages);
+        } catch (MessagingException | SQLException ex) {
+            log.error("Pop3Agent.getMessageList() : exception = {}", ex.getMessage());
+        } finally {
+            return list;
+        }
+    }
+    
+    // 메일 읽음 확인을 위해 사용자가 받은 메일 추출
+    public ArrayList<String> GetTrashMessageId(HikariConfiguration dbConfig) {
+        ArrayList<String> get_id = new ArrayList<>();
+        try {
+            String sql = "SELECT message_name FROM trash_mail WHERE repository_name=?";
+            javax.sql.DataSource ds = dbConfig.dataSouce();
+            conn = ds.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userid);
+            log.debug("sql = {}", pstmt);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String messageName = rs.getString("message_name");
+                get_id.add(messageName);
+            }
+
+        } catch (SQLException ex) {
+            log.error("GetMessageId sql 오류() : execption={}", ex.getMessage());
+        } finally {
+            return get_id;
         }
     }
 
@@ -300,6 +356,7 @@ public class Pop3Agent {
             return result;
         }
     }
+
 
     private boolean connectToStore() {
         boolean status = false;
