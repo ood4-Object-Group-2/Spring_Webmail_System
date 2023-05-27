@@ -460,7 +460,7 @@ public class SystemController {
 
         model.addAttribute("messageList", slice_list);
         model.addAttribute("paging", paging);
-        return "/trashcan";
+        return "/trashcan?page=1";
     }
 
     // 보낸 메일함
